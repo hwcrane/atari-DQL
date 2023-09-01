@@ -42,6 +42,8 @@ def train(env: gym.Env, agent: AtariAgent, n_episodes: int, batch_size: int):
 
             observation = next_observation
 
+            agent.optimise(batch_size)
+
             if done:
                 break
 
@@ -55,9 +57,9 @@ if __name__ == '__main__':
     device = torch.device('mps' if torch.has_mps else 'cpu')
 
     # Hyperparameters
-    BATCH_SIZE = 32
+    BATCH_SIZE = 128
 
-    env = gym.make('PongNoFrameskip-v4')
+    env = gym.make('Pong-v4')
 
     agent = AtariAgent(
         device=device,

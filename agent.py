@@ -149,5 +149,5 @@ class AtariAgent:
 
         self.optimiser.step()
 
-        if self.steps_done % self.target_update:
+        if self.steps_done % self.target_update == 0:
             self.target_net.load_state_dict(self.policy_net.state_dict())
