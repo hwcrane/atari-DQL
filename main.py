@@ -9,12 +9,11 @@ from torch.utils.tensorboard import SummaryWriter
 
 def convert_observation(observation):
     """Converts the observation from a numpy array bounded 0-255 to torch Tensor 0-1"""
-    return torch.from_numpy(np.array(observation, dtype=np.float32))
+    return torch.from_numpy(np.array(observation))
 
 
 def train(env: gym.Env, agent: AtariAgent, n_episodes: int, batch_size: int):
     writer = SummaryWriter()
-    start_time = time.time()
     for episode in range(n_episodes):
         observation, _ = env.reset()
         observation = convert_observation(observation)
@@ -89,7 +88,6 @@ if __name__ == '__main__':
 
     env = gym.make('ALE/Pong-v5')
     env = wrap_env(env)
-    sample = env.observation_space.sample()
 
     agent = AtariAgent(
         device=device,
@@ -97,7 +95,7 @@ if __name__ == '__main__':
         lr=1e-4,
         epsilon_start=1,
         epsilon_end=0.02,
-        epsilon_decay=100_000,
+        epsilon_decay=200_000,
         total_memory=100_000,
         initial_memory=10_000,
         gamma=0.99,
