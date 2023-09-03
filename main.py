@@ -9,7 +9,7 @@ from torch.utils.tensorboard import SummaryWriter
 
 def convert_observation(observation):
     """Converts the observation from a numpy array bounded 0-255 to torch Tensor 0-1"""
-    return torch.from_numpy(np.array(observation).astype(np.float32) / 255)
+    return torch.from_numpy(np.array(observation))
 
 
 def train(env: gym.Env, agent: AtariAgent, n_episodes: int, batch_size: int):
@@ -47,10 +47,6 @@ def train(env: gym.Env, agent: AtariAgent, n_episodes: int, batch_size: int):
         writer.add_scalar('Total Steps', agent.steps_done, episode)
         writer.add_scalar('Epsilon', agent.epsilon(), episode)
         writer.flush()
-        # if episode % 20 == 0:
-        #     print(
-        #         f'{datetime.timedelta(seconds=int(time.time() - start_time))} - Episode: {episode}, Total Steps: {agent.steps_done},  Total Reward: {total_reward}, Epsilon: {agent.epsilon()}'
-        #     )
     writer.close()
 
 
@@ -87,10 +83,9 @@ def wrap_env(env: gym.Env):
     return env
 
 if __name__ == '__main__':
-    device = torch.device('mps' if torch.has_mps else 'cpu')
-
+    device = torch.device('cuda' if torch.cuda.is_available() else 'mps' if torch.has_mps else 'cpu')
     # Hyperparameters
-    BATCH_SIZE = 32
+    BATCH_SIZE = 128
 
     env = gym.make('ALE/Pong-v5')
     env = wrap_env(env)
@@ -102,15 +97,15 @@ if __name__ == '__main__':
         lr=1e-4,
         epsilon_start=1,
         epsilon_end=0.02,
-        epsilon_decay=1_000_000,
+        epsilon_decay=500_000,
         total_memory=100_000,
         initial_memory=10_000,
         gamma=0.99,
         target_update=1000,
-        network_file = "PongModel2"
+        #network_file = "PongModel2"
     )
-    agent.steps_done = int(1.484e+6)
+    #agent.steps_done = int(1.484e+6)
 
-    train(env, agent, 500, BATCH_SIZE)
-    torch.save(agent.policy_net, 'PongModel3')
+    train(env, agent, 1000, BATCH_SIZE)
+    torch.save(agent.policy_net, 'PongModel')
     # test(env, agent, 1)

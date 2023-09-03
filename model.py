@@ -23,7 +23,7 @@ class DQN(nn.Module):
         )
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        x = self.conv_layers(x)
+        x = self.conv_layers(x / 255)
 
         # X is flattened before passing into linear layers
         x = x.view(-1, 64 * 7 * 7)
