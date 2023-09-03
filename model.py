@@ -26,7 +26,7 @@ class DQN(nn.Module):
         x = self.conv_layers(x)
 
         # X is flattened before passing into linear layers
-        x = x.view(x.size(0), -1)
+        x = x.view(-1, 64 * 7 * 7)
 
         x = self.linear_layers(x)
         return x

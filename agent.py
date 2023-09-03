@@ -21,15 +21,20 @@ class AtariAgent:
         initial_memory: int,
         gamma: float,
         target_update: int,
+        network_file=None,
     ) -> None:
         """Creates a new Atari agent"""
         self.n_actions = n_actions
         self.device = device
 
         # Deep Q networkd for policy and target, with optimiser for policy
-        self.policy_net = DQN(self.n_actions).to(device)
-        self.target_net = DQN(self.n_actions).to(device)
-        self.target_net.load_state_dict(self.policy_net.state_dict())
+        if network_file:
+            self.policy_net = torch.load(network_file)
+            self.target_net = torch.load(network_file)
+        else:
+            self.policy_net = DQN(self.n_actions).to(device)
+            self.target_net = DQN(self.n_actions).to(device)
+            self.target_net.load_state_dict(self.policy_net.state_dict())
         self.optimiser = Adam(self.policy_net.parameters(), lr=lr)
 
         self.steps_done = 0
@@ -39,39 +44,25 @@ class AtariAgent:
         self.gamma = gamma
         self.target_update = target_update
 
-        self.observation_buffer = deque(maxlen=4)
         self.memory = ReplayMemory(capacity=total_memory)
         self.initial_memory = initial_memory
 
-    def reset_observation_buffer(self):
-        """Clears the observation buffer, this shoulf be used every time the environment resets"""
-        self.observation_buffer.clear()
-
     def new_transition(
         self,
-        new_observation: torch.Tensor,
+        observation: torch.Tensor,
         action: torch.Tensor,
         reward: torch.Tensor,
+        next_observation: torch.Tensor,
         done: bool,
     ):
         """Stores a new transition in the replay memory. If the observation buffer is not full, the transition is not stored"""
-        # If there are not enough states in the state buffer to stack them, do not store new transition in memory
-        if len(self.observation_buffer) < 4:
-            self.observation_buffer.append(new_observation)
-            return
-
-        # Stack existing buffer
-        stacked_state = torch.stack(list(self.observation_buffer))
-
-        # Append new observation to buffer and then stack it
-        self.observation_buffer.append(new_observation)
-        next_stacked_state = torch.stack(list(self.observation_buffer))
-
         # Store transition
-        self.memory.push(stacked_state.to("cpu"), action.to("cpu"), reward.to("cpu"), next_stacked_state.to("cpu"))
-
-        if done:
-            self.reset_observation_buffer()
+        self.memory.push(
+            observation.to('cpu'),
+            action.to('cpu'),
+            reward.to('cpu'),
+            next_observation.to('cpu') if not done else None,
+        )
 
     def epsilon(self):
         """Calculate's the current epsilon threshold"""
@@ -79,26 +70,22 @@ class AtariAgent:
             self.epsilon_start - self.epsilon_end
         ) * math.exp(-1.0 * self.steps_done / self.epsilon_decay)
 
-    def new_observation(self, observation: torch.Tensor):
-        self.observation_buffer.append(observation)
-
-    def next_action(self) -> torch.Tensor:
+    def next_action(
+        self, observation: torch.Tensor, epsilon: float | None = None
+    ) -> torch.Tensor:
         """
         Calculates the next action to be taken,
         there is a 1-epsilon probability that a random action will be taken
         """
-        epsilon = self.epsilon()
+        if epsilon is None:
+            epsilon = self.epsilon()
 
         self.steps_done += 1
 
-        if random.random() > epsilon and len(self.memory) == 4:
+        if random.random() > epsilon:
             with torch.no_grad():
                 return (
-                    self.policy_net(
-                        torch.stack(list(self.observation_buffer)).to(
-                            self.device
-                        )
-                    )
+                    self.policy_net(observation.to(self.device))
                     .max(1)[1]
                     .view(1, 1)
                 )
@@ -120,8 +107,16 @@ class AtariAgent:
         transitions = self.memory.sample(batch_size)
         batch = Transition(*zip(*transitions))
 
-        state_batch = torch.stack(batch.state_stack).to(self.device)
-        next_state_batch = torch.stack(batch.next_state_stack).to(self.device)
+        non_final_mask = torch.tensor(
+            tuple(map(lambda s: s is not None, batch.next_state)),
+            device=self.device, dtype=torch.bool,
+        )
+
+        non_final_next_states = torch.stack(
+            [s for s in batch.next_state if s is not None]
+        ).to(self.device)
+
+        state_batch = torch.stack(batch.state).to(self.device)
         action_batch = torch.cat(batch.action).to(self.device)
         reward_batch = torch.cat(batch.reward).to(self.device)
 
@@ -129,13 +124,9 @@ class AtariAgent:
             1, action_batch
         )
 
-        next_state_values = (
-            self.target_net(next_state_batch).max(1)[0].detach()
-        )
-
-        expected_state_action_values = (
-            next_state_values * self.gamma
-        ) + reward_batch
+        next_state_values = torch.zeros(batch_size, device=self.device)
+        next_state_values[non_final_mask] = self.target_net(non_final_next_states).max(1)[0].detach()
+        expected_state_action_values = (next_state_values * self.gamma) + reward_batch
 
         loss = torch.nn.functional.smooth_l1_loss(
             state_action_values, expected_state_action_values.unsqueeze(1)
