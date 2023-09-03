@@ -9,7 +9,7 @@ from torch.utils.tensorboard import SummaryWriter
 
 def convert_observation(observation):
     """Converts the observation from a numpy array bounded 0-255 to torch Tensor 0-1"""
-    return torch.from_numpy(np.array(observation))
+    return torch.from_numpy(np.array(observation, dtype=np.float32))
 
 
 def train(env: gym.Env, agent: AtariAgent, n_episodes: int, batch_size: int):
@@ -85,7 +85,7 @@ def wrap_env(env: gym.Env):
 if __name__ == '__main__':
     device = torch.device('cuda' if torch.cuda.is_available() else 'mps' if torch.has_mps else 'cpu')
     # Hyperparameters
-    BATCH_SIZE = 128
+    BATCH_SIZE = 32
 
     env = gym.make('ALE/Pong-v5')
     env = wrap_env(env)
@@ -93,11 +93,11 @@ if __name__ == '__main__':
 
     agent = AtariAgent(
         device=device,
-        n_actions=env.action_space.n,
+        n_actions=4,
         lr=1e-4,
         epsilon_start=1,
         epsilon_end=0.02,
-        epsilon_decay=500_000,
+        epsilon_decay=100_000,
         total_memory=100_000,
         initial_memory=10_000,
         gamma=0.99,
