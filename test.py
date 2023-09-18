@@ -2,6 +2,7 @@ import torch
 import gymnasium as gym
 from agent import AtariAgent
 from utils import convert_observation, wrap_env
+from moviepy.editor import VideoFileClip
 
 def test(env: gym.Env, agent: AtariAgent, n_episodes: int):
     """
@@ -14,7 +15,7 @@ def test(env: gym.Env, agent: AtariAgent, n_episodes: int):
     """
 
     # Wrap the environment to record a video of the testing sessions
-    env = gym.wrappers.RecordVideo(env, './videos/' + 'dqn_pong_video')
+    env = gym.wrappers.RecordVideo(env, './videos/', name_prefix="pong")
     for _ in range(n_episodes):
 
         # Reset the environment for a new episode and convert the initial observation
@@ -76,3 +77,5 @@ if __name__ == '__main__':
     )
 
     test(env, agent, 1)
+    videoClip = VideoFileClip("./videos/pong-episode-0.mp4")
+    videoClip.write_gif("pong.gif")

@@ -1,6 +1,6 @@
 # Atari Reinforcement Learning Agent
 
-![Trained Agent Video](videos/dqn_pong_video/rl-video-episode-0.mp4)
+![Trained Agent Video](pong.gif)
 
 This repository contains code for training and testing an Atari reinforcement learning agent using the Deep Q-Network (DQN) algorithm. The agent is capable of learning to play various Atari games provided by the OpenAI Gymnasium environment.
 
