@@ -1,8 +1,10 @@
 import torch.nn as nn
 import torch
 
+
 class DQN(nn.Module):
     """Deep Q Network"""
+
     def __init__(self, n_actions: int) -> None:
         super().__init__()
 
@@ -18,9 +20,7 @@ class DQN(nn.Module):
 
         # Linear layers of the network
         self.linear_layers = nn.Sequential(
-            nn.Linear(64 * 7 * 7, 512), 
-            nn.ReLU(), 
-            nn.Linear(512, n_actions)
+            nn.Linear(64 * 7 * 7, 512), nn.ReLU(), nn.Linear(512, n_actions)
         )
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
