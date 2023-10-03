@@ -73,7 +73,7 @@ if __name__ == '__main__':
     # Hyperparameters
     BATCH_SIZE = 32
 
-    env = gym.make('ALE/Pong-v5')
+    env = gym.make('ALE/Breakout-v5')
     env = wrap_env(env)
 
     agent = AtariAgent(
@@ -90,4 +90,4 @@ if __name__ == '__main__':
     )
 
     train(env, agent, 1000, BATCH_SIZE)
-    torch.save(agent.policy_net, "PongModel")
+    torch.save(agent.policy_net, "BreakoutModel")
