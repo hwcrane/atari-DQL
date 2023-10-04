@@ -100,7 +100,7 @@ class AtariAgent:
         """
         return self.epsilon_end + (
             self.epsilon_start - self.epsilon_end
-        ) * math.exp(-1.0 * self.steps_done / self.epsilon_decay)
+        ) * (1 - min(self.steps_done / self.epsilon_decay, 1))
 
     def next_action(
         self, observation: torch.Tensor, epsilon: float | None = None
