@@ -69,6 +69,7 @@ if __name__ == '__main__':
         if torch.has_mps
         else 'cpu'
     )
+    print(device)
 
     # Hyperparameters
     BATCH_SIZE = 32
@@ -82,12 +83,12 @@ if __name__ == '__main__':
         lr=1e-4,
         epsilon_start=1,
         epsilon_end=0.02,
-        epsilon_decay=200_000,
+        epsilon_decay=500_000,
         total_memory=100_000,
         initial_memory=10_000,
         gamma=0.99,
-        target_update=1000,
+        target_update=10000,
     )
 
-    train(env, agent, 1000, BATCH_SIZE)
-    torch.save(agent.policy_net, "BreakoutModel")
+    train(env, agent, 5000, BATCH_SIZE)
+    torch.save(agent.policy_net.to('cpu'), "BreakoutModel")

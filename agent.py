@@ -43,8 +43,8 @@ class AtariAgent:
 
         # Deep Q networkd for policy and target, with optimiser for policy
         if network_file:
-            self.policy_net = torch.load(network_file)
-            self.target_net = torch.load(network_file)
+            self.policy_net = torch.load(network_file).to(self.device)
+            self.target_net = torch.load(network_file).to(self.device)
         else:
             # Create new policy and target networks if no pre-trained weights are provided
             self.policy_net = DQN(self.n_actions).to(device)

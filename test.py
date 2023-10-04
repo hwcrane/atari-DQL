@@ -2,7 +2,6 @@ import torch
 import gymnasium as gym
 from agent import AtariAgent
 from utils import convert_observation, wrap_env
-from moviepy.editor import VideoFileClip
 
 def test(env: gym.Env, agent: AtariAgent, n_episodes: int):
     """
@@ -15,7 +14,7 @@ def test(env: gym.Env, agent: AtariAgent, n_episodes: int):
     """
 
     # Wrap the environment to record a video of the testing sessions
-    env = gym.wrappers.RecordVideo(env, './videos/', name_prefix="pong")
+    env = gym.wrappers.RecordVideo(env, './videos/', name_prefix="breakout")
     for _ in range(n_episodes):
 
         # Reset the environment for a new episode and convert the initial observation
@@ -55,11 +54,12 @@ if __name__ == '__main__':
         if torch.has_mps
         else 'cpu'
     )
+    print(device)
 
     # Hyperparameters
     BATCH_SIZE = 32
 
-    env = gym.make('ALE/Pong-v5', render_mode='rgb_array')
+    env = gym.make('ALE/Breakout-v5', render_mode='rgb_array')
     env = wrap_env(env)
 
     agent = AtariAgent(
@@ -73,9 +73,9 @@ if __name__ == '__main__':
         initial_memory=10_000,
         gamma=0.99,
         target_update=1000,
-        network_file='PongModel',
+        network_file='BreakoutModel',
     )
 
-    test(env, agent, 1)
-    videoClip = VideoFileClip("./videos/pong-episode-0.mp4")
-    videoClip.write_gif("pong.gif")
+    test(env, agent, 5)
+    #videoClip = VideoFileClip("./videos/pong-episode-0.mp4")
+    #videoClip.write_gif("pong.gif")
