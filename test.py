@@ -3,7 +3,44 @@ import gymnasium as gym
 from agent import AtariAgent
 from utils import convert_observation, wrap_env
 
-def test(env: gym.Env, agent: AtariAgent, n_episodes: int):
+
+def next_action(observation, policy_net, device):
+    with torch.no_grad():
+        return (
+            policy_net(observation.to(device))
+            .max(1)[1]
+            .view(1, 1)
+        )
+
+
+def test(env, policy_net, num_episodes, video_folder, device):
+    env = gym.wrappers.RecordVideo(env, video_folder=video_folder)
+    for _ in range(num_episodes):
+        # Reset the environment for a new episode and convert the initial observation
+        observation, _ = env.reset()
+        observation = convert_observation(observation)
+
+        while True:
+            # Choose the next action using a greedy policy (epsilon=0) since this is testing
+            action = next_action(observation, policy_net, device)
+
+            # Take the chosen action in the environment and receive the next observation and reward
+            next_observation, reward, terminated, truncated, _ = env.step(
+                action
+            )
+
+            next_observation = convert_observation(next_observation)
+
+            # Update the current observation
+            observation = next_observation
+
+            done = truncated or terminated
+            if done:
+                break
+    env.close()
+
+
+def test2(env: gym.Env, agent: AtariAgent, n_episodes: int):
     """
     Test the trained Atari agent in the specified environment.
 
@@ -15,13 +52,11 @@ def test(env: gym.Env, agent: AtariAgent, n_episodes: int):
 
     # Wrap the environment to record a video of the testing sessions
     env = gym.wrappers.RecordVideo(env, './videos/', name_prefix="breakout")
-    for _ in range(n_episodes):
+    for i in range(n_episodes):
 
         # Reset the environment for a new episode and convert the initial observation
         observation, _ = env.reset()
         observation = convert_observation(observation)
-
-        total_reward = 0.0
 
         while True:
             # Choose the next action using a greedy policy (epsilon=0) since this is testing
@@ -33,8 +68,6 @@ def test(env: gym.Env, agent: AtariAgent, n_episodes: int):
             )
 
             next_observation = convert_observation(next_observation)
-            total_reward += reward   # type: ignore
-            reward = torch.tensor([reward])
 
             # Update the current observation
             observation = next_observation
@@ -44,38 +77,3 @@ def test(env: gym.Env, agent: AtariAgent, n_episodes: int):
                 break
 
     env.close()
-
-
-if __name__ == '__main__':
-    device = torch.device(
-        'cuda'
-        if torch.cuda.is_available()
-        else 'mps'
-        if torch.has_mps
-        else 'cpu'
-    )
-    print(device)
-
-    # Hyperparameters
-    BATCH_SIZE = 32
-
-    env = gym.make('ALE/Breakout-v5', render_mode='rgb_array')
-    env = wrap_env(env)
-
-    agent = AtariAgent(
-        device=device,
-        n_actions=4,
-        lr=1e-4,
-        epsilon_start=1,
-        epsilon_end=0.02,
-        epsilon_decay=200_000,
-        total_memory=100_000,
-        initial_memory=10_000,
-        gamma=0.99,
-        target_update=1000,
-        network_file='BreakoutModel',
-    )
-
-    test(env, agent, 5)
-    #videoClip = VideoFileClip("./videos/pong-episode-0.mp4")
-    #videoClip.write_gif("pong.gif")

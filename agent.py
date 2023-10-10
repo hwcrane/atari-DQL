@@ -88,7 +88,7 @@ class AtariAgent:
             observation.to('cpu'),
             action.to('cpu'),
             reward.to('cpu'),
-            next_observation.to('cpu') if not done else None,
+            next_observation.to('cpu'),
         )
 
     def epsilon(self):
