@@ -53,6 +53,7 @@ def training(config_data):
     batch_size = int(config_data.get('batch_size'))
     model_path = config_data.get('model_path')
     episodes = int(config_data.get('episodes'))
+    max_episode_length = int(config_data.get('max_episode_length'))
 
     # Load expensive imports here to speed up program start time
     import torch
@@ -85,7 +86,7 @@ def training(config_data):
         target_update=target_update,
     )
 
-    train(env, agent, batch_size, episodes)
+    train(env, agent, episodes, batch_size, max_episode_length)
     torch.save(agent.policy_net.to('cpu'), model_path)
 
 

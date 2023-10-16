@@ -1,4 +1,6 @@
 from torch.optim import Adam
+
+import model
 from replay_memory import ReplayMemory, Transition
 from model import DQN
 import math
@@ -49,6 +51,8 @@ class AtariAgent:
             # Create new policy and target networks if no pre-trained weights are provided
             self.policy_net = DQN(self.n_actions).to(device)
             self.target_net = DQN(self.n_actions).to(device)
+
+            self.policy_net.apply(model.init_weights)
             self.target_net.load_state_dict(self.policy_net.state_dict())
 
         # Optimiser for the policy network
@@ -88,7 +92,7 @@ class AtariAgent:
             observation.to('cpu'),
             action.to('cpu'),
             reward.to('cpu'),
-            next_observation.to('cpu'),
+            next_observation.to('cpu') if not done else None,
         )
 
     def epsilon(self):
@@ -204,5 +208,5 @@ class AtariAgent:
         self.optimiser.step()
 
         # Update the target network's parameters if the target update interval is reached
-        if self.steps_done % self.target_update == 0:
+        if self.steps_done % self.target_update == 1:
             self.target_net.load_state_dict(self.policy_net.state_dict())

@@ -7,7 +7,7 @@ from torch.utils.tensorboard import SummaryWriter
 from utils import convert_observation
 
 
-def train(env: gym.Env, agent: AtariAgent, n_episodes: int, batch_size: int):
+def train(env: gym.Env, agent: AtariAgent, n_episodes: int, batch_size: int, max_episode_length: int):
     """
     Train the Atari agent using the specified environment.
 
@@ -28,7 +28,7 @@ def train(env: gym.Env, agent: AtariAgent, n_episodes: int, batch_size: int):
 
         total_reward = 0.0
 
-        while True:
+        for _ in range(max_episode_length):
             # Choose the next action using the agent's epsilon-greedy policy
             action = agent.next_action(observation)
 

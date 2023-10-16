@@ -1,7 +1,9 @@
 import torch.nn as nn
 import torch
 
-
+def init_weights(m):
+    if isinstance(m, nn.Linear):
+        torch.nn.init.kaiming_uniform_(m.weight)
 class DQN(nn.Module):
     """Deep Q Network"""
 
