@@ -12,6 +12,7 @@ def train(env: gym.Env, agent: AtariAgent, n_episodes: int, batch_size: int, max
     Train the Atari agent using the specified environment.
 
     Args:
+        max_episode_length:
         env (gym.Env): The Gym environment used for training.
         agent (AtariAgent): The AtariAgent that will be trained.
         n_episodes (int): The number of episodes to train the agent.
