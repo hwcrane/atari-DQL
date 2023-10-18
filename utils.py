@@ -7,6 +7,25 @@ def convert_observation(observation):
     return torch.from_numpy(np.array(observation))
 
 
+class NoopStart(gym.Wrapper):
+    def __init__(self, env: gym.Env, noop_max: int = 30) -> None:
+        super().__init__(env)
+        self.noop_max = noop_max
+        self.noop_action = 0
+
+    def reset(self, **kwargs):
+        self.env.reset(**kwargs)
+
+        noops = self.unwrapped.np_random.integers(1, self.noop_max + 1)
+
+        obs = np.zeros(0)
+        info = {}
+        for _ in range(noops):
+            obs, _, terminated, truncated, info = self.env.step(self.noop_action)
+            if terminated or truncated:
+                obs, info = self.env.reset(**kwargs)
+        return obs, info
+
 def wrap_env(env: gym.Env):
     """
     Prepare a Gym environment for training or testing with an Atari agent.
@@ -26,4 +45,7 @@ def wrap_env(env: gym.Env):
     
     # Stack multiple consecutive frames to provide temporal information to the agent
     env = gym.wrappers.FrameStack(env, num_stack=4)
+
+    env = NoopStart(env)
+
     return env
