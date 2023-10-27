@@ -84,6 +84,7 @@ def training(config_data):
         initial_memory=initial_memory,
         gamma=gamma,
         target_update=target_update,
+        network_file='BreakoutModel2'
     )
 
     train(env, agent, episodes, batch_size, max_episode_length)

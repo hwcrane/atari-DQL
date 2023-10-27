@@ -1,6 +1,7 @@
 # Atari Deep Reinforcement Learning Agent
 
 ![Trained Agent Video](pong.gif)
+![Trained Agent Video](breakout.gif)
 
 This repository contains code for training and testing an Atari reinforcement learning agent based on [Deepminds orignal paper](https://arxiv.org/pdf/1312.5602.pdf), modified to use the [Double Deep Q-Network algorithm](https://arxiv.org/pdf/1509.06461.pdf). The agent is capable of learning to play various Atari games provided by the Gymnasium environment. Pytorch is used for the Deep Q-Networks, with tensorboard to display training metrics.
 

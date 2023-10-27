@@ -31,7 +31,7 @@ def train(env: gym.Env, agent: AtariAgent, n_episodes: int, batch_size: int, max
 
         for _ in range(max_episode_length):
             # Choose the next action using the agent's epsilon-greedy policy
-            action = agent.next_action(observation)
+            action = agent.next_action(observation, epsilon=0.02)
 
             # Take the chosen action in the environment and receive the next observation and reward
             next_observation, reward, terminated, truncated, info = env.step(
@@ -63,5 +63,9 @@ def train(env: gym.Env, agent: AtariAgent, n_episodes: int, batch_size: int, max
         writer.add_scalar('Reward', total_reward, episode)
         writer.add_scalar('Epsilon', agent.epsilon(), episode)
         writer.flush()
+
+        if episode % 1000 == 1:
+            torch.save(agent.policy_net.to('cpu'), f'in_progress_model_{episode}')
+            agent.policy_net.to(agent.device)
     writer.close()
     env.close()

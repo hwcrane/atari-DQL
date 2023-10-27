@@ -46,6 +46,5 @@ def wrap_env(env: gym.Env):
     # Stack multiple consecutive frames to provide temporal information to the agent
     env = gym.wrappers.FrameStack(env, num_stack=4)
 
-    env = NoopStart(env)
 
     return env
